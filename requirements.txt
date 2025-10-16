@@ -1,0 +1,7 @@
+playwright
+pytest
+pytest-rerunfailures
+requests
+pytest-xdist
+eyes-playwright
+python-dotenv
