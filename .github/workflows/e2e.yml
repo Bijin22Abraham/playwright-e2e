@@ -45,7 +45,7 @@ jobs:
       - name: Install Playwright browsers
         run: |
           # prefer npx if available; fallback to python CLI
-          npx playwright install --with-deps || python -m playwright install --with-deps
+          npx playwright install --with-deps || python3 -m playwright install --with-deps
 
       - name: Run smoke tests (stub mode)
         env:
