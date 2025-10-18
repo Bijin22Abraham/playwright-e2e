@@ -44,8 +44,13 @@ jobs:
 
       - name: Install Playwright browsers
         run: |
-          # prefer npx if available; fallback to python CLI
-          npx playwright install --with-deps || python3 -m playwright install --with-deps
+          set -euo pipefail
+          # Prefer npx if available; otherwise fall back to the Python CLI
+          if command -v npx >/dev/null 2>&1; then
+            npx playwright install --with-deps
+          else
+            python -m playwright install --with-deps
+          fi
 
       - name: Run smoke tests (stub mode)
         env:
@@ -95,7 +100,12 @@ jobs:
 
       - name: Install Playwright browsers
         run: |
-          npx playwright install --with-deps || python -m playwright install --with-deps
+          set -euo pipefail
+          if command -v npx >/dev/null 2>&1; then
+            npx playwright install --with-deps
+          else
+            python -m playwright install --with-deps
+          fi
 
       - name: Run full regression (integration mode)
         env:
