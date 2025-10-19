@@ -10,7 +10,6 @@ on:
 
 env:
   PYTHON_VERSION: '3.11'
-  BASE_URL: ${{ secrets.BASE_URL || 'http://localhost:8080' 
 
 jobs:
   smoke:
@@ -25,12 +24,12 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Setup Node (for npx if needed)
+      - name: Setup Node (for npx/playwright CLI)
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Cache pip
+      - name: Cache pip and playwright cache
         uses: actions/cache@v4
         with:
           path: |
@@ -45,21 +44,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install Playwright Python package (ensures CLI is available)
+      - name: Install Playwright Python package
         run: |
           python -m pip install playwright
 
       - name: Install Playwright browsers
         run: |
-          # Python wrapper is reliable in Python CI contexts
           python -m playwright install --with-deps
 
       - name: Run smoke tests (stub mode)
         env:
           TEST_MODE: stub
-          BASE_URL: ${{ secrets.BASE_URL || 'http://localhost:8080' }}
+          # raw secret (may be empty) – we will default in the shell
+          BASE_URL: ${{ secrets.BASE_URL }}
           APPLITOOLS_API_KEY: ${{ secrets.APPLITOOLS_API_KEY }}
         run: |
+          # ensure BASE_URL has a sensible default if the secret is missing or empty
+          export BASE_URL="${BASE_URL:-http://localhost:8080}"
+          echo "Using BASE_URL=${BASE_URL}"
           pytest -q --maxfail=1 --disable-warnings
 
       - name: Upload artifacts on failure
@@ -87,7 +89,7 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Cache pip
+      - name: Cache pip and playwright cache
         uses: actions/cache@v4
         with:
           path: |
@@ -113,9 +115,12 @@ jobs:
       - name: Run full regression (integration mode)
         env:
           TEST_MODE: integration
-          BASE_URL: ${{ secrets.INTEGRATION_BASE_URL }}
+          # raw integration base (may be empty) — fallback in shell
+          INTEGRATION_BASE_URL: ${{ secrets.INTEGRATION_BASE_URL }}
           APPLITOOLS_API_KEY: ${{ secrets.APPLITOOLS_API_KEY }}
         run: |
+          export INTEGRATION_BASE_URL="${INTEGRATION_BASE_URL:-http://localhost:8080}"
+          echo "Using INTEGRATION_BASE_URL=${INTEGRATION_BASE_URL}"
           pytest -q --maxfail=1 --disable-warnings || true
 
       - name: Upload artifacts on failure
@@ -124,3 +129,4 @@ jobs:
         with:
           name: playwright-nightly-artifacts
           path: artifacts/
+
