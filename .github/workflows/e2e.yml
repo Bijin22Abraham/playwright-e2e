@@ -10,6 +10,7 @@ on:
 
 env:
   PYTHON_VERSION: '3.11'
+  BASE_URL: ${{ secrets.BASE_URL || 'http://localhost:8080' 
 
 jobs:
   smoke:
@@ -56,7 +57,7 @@ jobs:
       - name: Run smoke tests (stub mode)
         env:
           TEST_MODE: stub
-          BASE_URL: ${{ secrets.BASE_URL }}
+          BASE_URL: ${{ secrets.BASE_URL || 'http://localhost:8080' }}
           APPLITOOLS_API_KEY: ${{ secrets.APPLITOOLS_API_KEY }}
         run: |
           pytest -q --maxfail=1 --disable-warnings
